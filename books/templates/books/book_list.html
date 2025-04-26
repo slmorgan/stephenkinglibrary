@@ -171,7 +171,9 @@
                     <div class="book-info">
                         <h2 class="book-title">{{ book.title }}</h2>
                         <p class="book-meta">
-                            <span class="book-date">Published: {{ book.publication_date }}</span>
+                            {% if book.publication_date and book.publication_date != 'No date' %}
+                                <span class="book-date">Published: {{ book.publication_date }}</span>
+                            {% endif %}
                             <span class="book-format">Format: {{ book.format }}</span>
                             <span class="book-isbn">ISBN: {{ book.isbn }}</span>
                         </p>
