@@ -61,7 +61,7 @@ def get_author_books():
                         for date_elem in possible_date_elements:
                             if date_elem is not None and date_elem.text:
                                 pub_date = date_elem.text.strip()
-                                print(f"Found publication date: {pub_date}")
+                                print(f"Found publication date: {pub_date} for book: {work.find('title').text}")
                                 break
                         
                         if pub_date is None:
