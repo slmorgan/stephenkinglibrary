@@ -2,6 +2,7 @@ import requests
 import xml.etree.ElementTree as ET
 import html
 from django.conf import settings
+from datetime import datetime
 
 def get_author_books():
     try:
@@ -10,7 +11,7 @@ def get_author_books():
             'Accept': 'application/xml'
         }
         
-        print(f"Making request to: {url}")
+        print(f"[{datetime.now()}] Making request to: {url}")
         response = requests.get(url, headers=headers)
         print(f"Response status code: {response.status_code}")
         
