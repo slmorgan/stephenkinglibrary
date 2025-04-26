@@ -50,3 +50,6 @@ Thumbs.db
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+# GitHub Actions runner
+actions-runner/
