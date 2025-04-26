@@ -34,6 +34,9 @@ def get_author_books():
                 
                 print(f"Found {len(works)} works")
                 
+                # Add debug print for XML structure
+                print(f"XML Structure sample: {ET.tostring(root, encoding='unicode')[:500]}")
+                
                 for work in works:
                     # Print the entire work element for debugging
                     print(f"Processing work: {ET.tostring(work, encoding='unicode')[:500]}")
