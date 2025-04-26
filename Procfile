@@ -1,1 +1,1 @@
-web: gunicorn stephenkinglibrary.wsgi:application 
+web: gunicorn wsgi:application 
