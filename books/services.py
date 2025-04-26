@@ -18,6 +18,7 @@ def get_author_books():
         if response.status_code == 200:
             try:
                 # Parse XML response
+                print(f"Response content: {response.text[:500]}")  # Print first 500 chars for debugging
                 root = ET.fromstring(response.text)
                 
                 # Extract author information
@@ -35,37 +36,9 @@ def get_author_books():
                 
                 print(f"Found {len(works)} works")
                 
-                # Add debug print for XML structure
-                print(f"XML Structure sample: {ET.tostring(root, encoding='unicode')[:500]}")
-                
                 for work in works:
                     # Print the entire work element for debugging
                     print(f"Processing work: {ET.tostring(work, encoding='unicode')[:500]}")
-                    
-                    # Try to get image from work element first
-                    image = work.find('.//image')
-                    if image is not None and image.text:
-                        print(f"Found image in work: {image.text}")
-                        image_url = image.text
-                    else:
-                        # If not found in work, try to get it from the book element
-                        book = work.find('book')
-                        if book is not None:
-                            image = book.find('.//image')
-                            if image is not None and image.text:
-                                print(f"Found image in book: {image.text}")
-                                image_url = image.text
-                            else:
-                                image_url = None
-                        else:
-                            image_url = None
-                    
-                    # Make sure the URL is complete
-                    if image_url and not image_url.startswith('http'):
-                        if image_url.startswith('/'):
-                            image_url = f"https://www.simonandschuster.com{image_url}"
-                        else:
-                            image_url = f"https://www.simonandschuster.com/{image_url}"
                     
                     # Get the book element for additional details
                     book = work.find('book')
@@ -73,21 +46,27 @@ def get_author_books():
                         # Print the book element for debugging
                         print(f"Book element: {ET.tostring(book, encoding='unicode')[:500]}")
                         
-                        # Get publication date
+                        # Get publication date with improved extraction
                         pub_date = None
-                        if book is not None:
-                            pub_date = book.find('publication_date')
-                            if pub_date is not None:
-                                print(f"Found publication date in book element: {pub_date.text}")
-                        if pub_date is None and work is not None:
-                            pub_date = work.find('publication_date')
-                            if pub_date is not None:
-                                print(f"Found publication date in work element: {pub_date.text}")
+                        # Try to find publication date in various possible locations
+                        possible_date_elements = [
+                            book.find('publication_date'),
+                            book.find('pub_date'),
+                            book.find('release_date'),
+                            work.find('publication_date'),
+                            work.find('pub_date'),
+                            work.find('release_date')
+                        ]
+                        
+                        for date_elem in possible_date_elements:
+                            if date_elem is not None and date_elem.text:
+                                pub_date = date_elem.text.strip()
+                                print(f"Found publication date: {pub_date}")
+                                break
+                        
                         if pub_date is None:
                             print(f"No publication date found for book: {work.find('title').text}")
                             pub_date = 'No date'
-                        else:
-                            pub_date = pub_date.text.strip()
                         
                         # Extract format
                         format_elem = book.find('format')
@@ -105,9 +84,33 @@ def get_author_books():
                         else:
                             isbn13 = 'No ISBN'
                     else:
-                        publication_date = 'No date'
+                        pub_date = 'No date'
                         format = 'No format'
                         isbn13 = 'No ISBN'
+                    
+                    # Try to get image from work element first
+                    image = work.find('.//image')
+                    if image is not None and image.text:
+                        print(f"Found image in work: {image.text}")
+                        image_url = image.text
+                    else:
+                        # If not found in work, try to get it from the book element
+                        if book is not None:
+                            image = book.find('.//image')
+                            if image is not None and image.text:
+                                print(f"Found image in book: {image.text}")
+                                image_url = image.text
+                            else:
+                                image_url = None
+                        else:
+                            image_url = None
+                    
+                    # Make sure the URL is complete
+                    if image_url and not image_url.startswith('http'):
+                        if image_url.startswith('/'):
+                            image_url = f"https://www.simonandschuster.com{image_url}"
+                        else:
+                            image_url = f"https://www.simonandschuster.com/{image_url}"
                     
                     book_data = {
                         'title': work.find('title').text if work.find('title') is not None else 'No title',
@@ -119,6 +122,7 @@ def get_author_books():
                         'thumbnail': image_url
                     }
                     books.append(book_data)
+                    print(f"Added book: {book_data['title']} with thumbnail: {book_data['thumbnail']}")
                 
                 return {
                     'author': author_data,
