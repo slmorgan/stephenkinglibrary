@@ -73,32 +73,21 @@ def get_author_books():
                         # Print the book element for debugging
                         print(f"Book element: {ET.tostring(book, encoding='unicode')[:500]}")
                         
-                        # Extract publication date with better error handling
-                        pub_date = book.find('pub_date')
-                        if pub_date is not None and pub_date.text:
-                            publication_date = pub_date.text.strip()
-                            print(f"Found publication date in book: {publication_date}")
+                        # Get publication date
+                        pub_date = None
+                        if book is not None:
+                            pub_date = book.find('publication_date')
+                            if pub_date is not None:
+                                print(f"Found publication date in book element: {pub_date.text}")
+                        if pub_date is None and work is not None:
+                            pub_date = work.find('publication_date')
+                            if pub_date is not None:
+                                print(f"Found publication date in work element: {pub_date.text}")
+                        if pub_date is None:
+                            print(f"No publication date found for book: {work.find('title').text}")
+                            pub_date = 'No date'
                         else:
-                            # Try to find publication date in other possible locations
-                            pub_date = work.find('pub_date')
-                            if pub_date is not None and pub_date.text:
-                                publication_date = pub_date.text.strip()
-                                print(f"Found publication date in work: {publication_date}")
-                            else:
-                                # Try to find publication date in other possible elements
-                                pub_date = work.find('.//pub_date')
-                                if pub_date is not None and pub_date.text:
-                                    publication_date = pub_date.text.strip()
-                                    print(f"Found publication date in nested element: {publication_date}")
-                                else:
-                                    # Try to find release date
-                                    pub_date = work.find('release_date')
-                                    if pub_date is not None and pub_date.text:
-                                        publication_date = pub_date.text.strip()
-                                        print(f"Found release date: {publication_date}")
-                                    else:
-                                        publication_date = 'No date'
-                                        print("No publication date found in any location")
+                            pub_date = pub_date.text.strip()
                         
                         # Extract format
                         format_elem = book.find('format')
@@ -122,7 +111,7 @@ def get_author_books():
                     
                     book_data = {
                         'title': work.find('title').text if work.find('title') is not None else 'No title',
-                        'publication_date': publication_date,
+                        'publication_date': pub_date,
                         'description': html.unescape(work.find('description').text) if work.find('description') is not None else 'No description',
                         'isbn': isbn13,
                         'isbn13': isbn13,
